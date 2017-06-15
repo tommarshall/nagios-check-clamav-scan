@@ -1,5 +1,7 @@
 # Nagios check_clamav
 
+[![Build Status](https://travis-ci.org/tommarshall/nagios-check-clamav.svg?branch=master)](https://travis-ci.org/tommarshall/nagios-check-clamav)
+
 Nagios plugin for monitoring [ClamAV] virus scans.
 
 Exits `CRITICAL` if any infected files are reported within the `clamscan` log, otherwise `OK`.
