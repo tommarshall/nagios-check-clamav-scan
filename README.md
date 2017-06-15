@@ -4,8 +4,6 @@
 
 Nagios plugin for monitoring [ClamAV] virus scans.
 
-Exits `CRITICAL` if any infected files are reported within the `clamscan` log, otherwise `OK`.
-
 ## Installation
 
 Install [ClamAV].
@@ -30,23 +28,33 @@ define command {
 ## Usage
 
 ```
-Usage: ./check_clamav -l <path>
+Usage: ./check_clamav -l <path> [options]
 ```
 
 ### Examples
 
 ```sh
-# exit CRITICAL if 1 or more infected files are found, otherwise OK
+# exit OK if 0 infected files detected, CRITICAL if 1 or more detected
 ./check_clamav -l /tmp/clamav.log
+
+# exit OK if 0 infected files detected, WARNING if upto 10 detected, CRITICAL if 10 or more detected
+./check_clamav -l /tmp/clamav.log -c 10
+
+# exit OK if upto 4 infected files detected, WARNING if upto 5 detected, CRITICAL if 10 or more detected
+./check_clamav -l /tmp/clamav.log -c 10 -w 5
 ```
 
 ### Options
 
 ```
 -l, --logfile <path>        Path to clamscan logfile
+-w, --warning <number>      number of infected files treat as WARNING
+-c, --critical <number>     number of infected files to treat as CRITICAL
 -V, --version               output version
 -h, --help                  output help information
 ```
+
+`-c`/`--critical` takes priority over `-w`/`--warning`.
 
 ## Dependencies
 

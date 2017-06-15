@@ -112,6 +112,109 @@ EOF
   assert_output "OK: 0 infected file(s) detected"
 }
 
+# --critical
+# ------------------------------------------------------------------------------
+@test "--critical overrides default" {
+  cat > clamav.log.infected <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 1
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 2
+
+  assert_failure 1
+  assert_output "WARNING: 1 infected file(s) detected"
+}
+
+@test "-c is an alias for --critical" {
+  cat > clamav.log.infected <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 1
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.infected -c 2
+
+  assert_failure 1
+  assert_output "WARNING: 1 infected file(s) detected"
+}
+
+# --warning
+# ------------------------------------------------------------------------------
+@test "--warning overrides default" {
+  cat > clamav.log.infected <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 1
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 3 --warning 2
+
+  assert_success
+  assert_output "OK: 1 infected file(s) detected"
+}
+
+@test "-w is an alias for --warning" {
+  skip
+}
+
+@test "-w is an alias for --warning" {
+  cat > clamav.log.infected <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 1
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 3 -w 2
+
+  assert_success
+  assert_output "OK: 1 infected file(s) detected"
+}
+
+@test "critical takes prescence over warning" {
+cat > clamav.log.infected <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 2
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 2 --warning 1
+
+  assert_failure 2
+  assert_output "CRITICAL: 2 infected file(s) detected"
+}
+
 # --version
 # ------------------------------------------------------------------------------
 @test "--version prints the version" {
@@ -134,12 +237,12 @@ EOF
   run $BASE_DIR/check_clamav --help
 
   assert_success
-  assert_line --partial "Usage: ./check_clamav -l <path>"
+  assert_line --partial "Usage: ./check_clamav -l <path> [options]"
 }
 
 @test "-h is an alias for --help" {
   run $BASE_DIR/check_clamav -h
 
   assert_success
-  assert_line --partial "Usage: ./check_clamav -l <path>"
+  assert_line --partial "Usage: ./check_clamav -l <path> [options]"
 }
