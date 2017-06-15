@@ -85,6 +85,14 @@ done
 # Showtime.
 #
 
+# ensure we have executable dependencies
+for dependency in cut grep rev sed; do
+  if ! hash $dependency >/dev/null 2>&1; then
+    echo "UNKNOWN: Missing dependency: ${dependency}"
+    exit $UNKNOWN
+  fi
+done
+
 # ensure we have a LOGFILE_PATH
 if [ -z "$LOGFILE_PATH" ]; then
   echo 'UNKNOWN: --logfile/-l not set'
