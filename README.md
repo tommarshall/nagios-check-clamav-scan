@@ -59,6 +59,7 @@ Usage: ./check_clamav -l <path> [options]
 ## Dependencies
 
 * Bash
+* `cut`, `grep`, `rev`, `sed`
 
 [ClamAV]: https://www.clamav.net/
 [check_clamav]: https://cdn.rawgit.com/tommarshall/nagios-check-clamav/v0.1.0/check_clamav

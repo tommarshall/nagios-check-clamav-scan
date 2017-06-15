@@ -58,6 +58,14 @@ EOF
   assert_output "UNKNOWN: Unable to locate infected files count within scan summary"
 }
 
+@test "exits UNKNOWN if an executable dependency is missing" {
+  PATH='/bin'
+  run $BASE_DIR/check_clamav --logfile clamav.log
+
+  assert_failure 3
+  assert_output "UNKNOWN: Missing dependency: cut"
+}
+
 # Defaults
 #------------------------------------------------------------------------------
 @test "exits OK if no infected files are found" {
