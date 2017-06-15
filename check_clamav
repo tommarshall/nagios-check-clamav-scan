@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+#
+# check_clamav - Nagios plugin for monitoring ClamAV.
+#
+# Released under the MIT License.
+#
+# https://github.com/tommarshall/nagios-check-clamav
+#
+
+VERSION=0.1.0
+OK=0
+WARNING=1
+CRITICAL=2
+UNKNOWN=3
+
+#
+# Output version.
+#
+
+version() {
+  echo "check_clamav $VERSION"
+}
+
+#
+# Output usage information.
+#
+
+usage() {
+  echo 'Usage: ./check_clamav -l <path>'
+}
+
+#
+# Output help information.
+#
+
+help() {
+  usage
+  cat <<-EOF
+
+  Examples:
+    ./check_clamav -l /tmp/clamav.log
+
+  Options:
+    -l, --logfile <path>        Path to clamscan logfile
+    -V, --version               output version
+    -h, --help                  output help information
+
+  For more information, see https://github.com/tommarshall/nagios-check-clamav
+
+EOF
+}
+
+#
+# Parse argv.
+#
+
+while test $# -ne 0; do
+  ARG=$1; shift
+  case $ARG in
+    -l|--logfile) LOGFILE_PATH=$1; shift ;;
+    -V|--version) version; exit ;;
+    -h|--help) help; exit ;;
+    *)
+      echo "UNKNOWN: Unrecognised argument: $ARG"
+      usage >&2
+      exit $UNKNOWN
+      ;;
+  esac
+done
+
+#
+# Showtime.
+#
+
+# ensure we have a LOGFILE_PATH
+if [ -z "$LOGFILE_PATH" ]; then
+  echo 'UNKNOWN: --logfile/-l not set'
+  exit $UNKNOWN
+fi
+
+# ensure we're able to read the LOGFILE_PATH
+if ! [[ -f "$LOGFILE_PATH" && -r "$LOGFILE_PATH" ]]; then
+  echo "UNKNOWN: Unable to read logfile: ${LOGFILE_PATH}"
+  exit $UNKNOWN
+fi
+
+# ensure we're able to locate a scan summary within the logfile
+SCAN_SUMMARY=$(sed -n -e '/----------- SCAN SUMMARY -----------/,$p' $LOGFILE_PATH)
+if [ -z "$SCAN_SUMMARY" ]; then
+  echo 'UNKNOWN: Unable to locate scan summary within logfile'
+  exit $UNKNOWN
+fi
+
+# ensure we're able to locate an infected files count within the scan summary
+INFECTED_FILES_COUNT=$(echo "$SCAN_SUMMARY" | grep '^Infected files:' | rev | cut -d' ' -f1 | rev)
+if [ -z "$INFECTED_FILES_COUNT" ]; then
+  echo 'UNKNOWN: Unable to locate infected files count within scan summary'
+  exit $UNKNOWN
+fi
+
+#
+# report and exit
+#
+
+if [ "$INFECTED_FILES_COUNT" -lt "1" ]; then
+  echo "OK: ${INFECTED_FILES_COUNT} infected file(s) detected"
+  exit $OK
+fi
+
+echo "CRITICAL: ${INFECTED_FILES_COUNT} infected file(s) detected"
+exit $CRITICAL
