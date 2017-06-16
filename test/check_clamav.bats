@@ -106,6 +106,26 @@ EOF
   assert_output "CRITICAL: 1 infected file(s) detected"
 }
 
+@test "exits UNKNOWN logfile older than the default threshold" {
+  cat > clamav.log.clean <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 0
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+  touch -m -d "$(date -d '-49 hours')" clamav.log.clean
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.clean
+
+  assert_failure 3
+  assert_output "UNKNOWN: Logfile has expired, more than 48 hours old"
+}
+
 # --logfile
 # ------------------------------------------------------------------------------
 @test "-l is an alias for --logfile" {
@@ -118,6 +138,60 @@ EOF
 
   assert_success
   assert_output "OK: 0 infected file(s) detected"
+}
+
+# --expiry
+# ------------------------------------------------------------------------------
+@test "--expiry overrides default" {
+  cat > clamav.log.clean <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 0
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+  touch -m -d "$(date -d '-2 hours')" clamav.log.clean
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.clean --expiry '1 hour'
+
+  assert_failure 3
+  assert_output "UNKNOWN: Logfile has expired, more than 1 hour old"
+}
+
+@test "-e is an alias for --expiry" {
+  cat > clamav.log.clean <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 0
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+  touch -m -d "$(date -d '-2 hours')" clamav.log.clean
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.clean -e '1 hour'
+
+  assert_failure 3
+  assert_output "UNKNOWN: Logfile has expired, more than 1 hour old"
+}
+
+@test "exits UNKNOWN if invalid date string" {
+  cat > clamav.log.clean <<-EOF
+----------- SCAN SUMMARY -----------
+Infected files: 0
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.clean --expiry 'not-a-valid-date'
+
+  assert_failure 3
+  assert_output "UNKNOWN: Invalid expiry specified: not-a-valid-date"
 }
 
 # --critical

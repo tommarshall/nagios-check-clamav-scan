@@ -15,6 +15,7 @@ CRITICAL=2
 UNKNOWN=3
 CRITICAL_THRESHOLD=1
 WARNING_THRESHOLD=1
+EXPIRY_THRESHOLD='48 hours'
 
 #
 # Output version.
@@ -43,17 +44,21 @@ help() {
   Examples:
     ./check_clamav -l /tmp/clamav.log
 
+    ./check_clamav -l /tmp/clamav.log -e '1 hour'
+
     ./check_clamav -l /tmp/clamav.log -c 10
 
     ./check_clamav -l /tmp/clamav.log -c 10 -w 5
 
   Options:
     -l, --logfile <path>        path to clamscan logfile
+    -e, --expiry <duration>     expiry threshold for logfile
     -w, --warning <number>      number of infected files treat as WARNING
     -c, --critical <number>     number of infected files to treat as CRITICAL
     -V, --version               output version
     -h, --help                  output help information
 
+  -e/--expiry should be a human readable duration, e.g. '1 hour', or '7 days'.
   -c/--critical takes priority over -w/--warning.
 
   For more information, see https://github.com/tommarshall/nagios-check-clamav
@@ -69,6 +74,7 @@ while test $# -ne 0; do
   ARG=$1; shift
   case $ARG in
     -l|--logfile) LOGFILE_PATH=$1; shift ;;
+    -e|--expiry) EXPIRY_THRESHOLD=$1; shift ;;
     -w|--warning) WARNING_THRESHOLD=$1; shift ;;
     -c|--critical) CRITICAL_THRESHOLD=$1; shift ;;
     -V|--version) version; exit ;;
@@ -93,6 +99,36 @@ for dependency in cut grep rev sed; do
   fi
 done
 
+# ensure we have GNU date
+if ! date --version >/dev/null 2>&1 ; then
+  if gdate --version >/dev/null 2>&1 ; then
+    date () { gdate "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU date'
+    exit $UNKNOWN
+  fi
+fi
+
+# ensure we have GNU stat
+if ! stat --version >/dev/null 2>&1 ; then
+  if gstat --version >/dev/null 2>&1 ; then
+    stat () { gstat "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU stat'
+    exit $UNKNOWN
+  fi
+fi
+
+# ensure we have GNU stat
+if ! touch --version >/dev/null 2>&1 ; then
+  if gtouch --version >/dev/null 2>&1 ; then
+    touch () { gtouch "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU touch'
+    exit $UNKNOWN
+  fi
+fi
+
 # ensure we have a LOGFILE_PATH
 if [ -z "$LOGFILE_PATH" ]; then
   echo 'UNKNOWN: --logfile/-l not set'
@@ -116,6 +152,19 @@ fi
 INFECTED_FILES_COUNT=$(echo "$SCAN_SUMMARY" | grep '^Infected files:' | rev | cut -d' ' -f1 | rev)
 if [ -z "$INFECTED_FILES_COUNT" ]; then
   echo 'UNKNOWN: Unable to locate infected files count within scan summary'
+  exit $UNKNOWN
+fi
+
+# ensure the expiry argument is valid
+if ! THRESHOLD_DATE="$(date --date="-$EXPIRY_THRESHOLD" +'%s' 2>/dev/null)"; then
+  echo "UNKNOWN: Invalid expiry specified: ${EXPIRY_THRESHOLD}"
+  exit $UNKNOWN
+fi
+
+# ensure the logfile has not expired
+LOGFILE_LAST_MODIFIED_DATE="$(stat --format='%Y' $LOGFILE_PATH)"
+if [ "$LOGFILE_LAST_MODIFIED_DATE" -lt "$THRESHOLD_DATE" ]; then
+  echo "UNKNOWN: Logfile has expired, more than ${EXPIRY_THRESHOLD} old"
   exit $UNKNOWN
 fi
 
