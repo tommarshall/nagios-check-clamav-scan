@@ -37,6 +37,9 @@ Usage: ./check_clamav -l <path> [options]
 # exit OK if 0 infected files detected, CRITICAL if 1 or more detected
 ./check_clamav -l /tmp/clamav.log
 
+# exit UNKNOWN if logfile is more than 1 hour old
+./check_clamav -l /tmp/clamav.log -e '1 hour'
+
 # exit OK if 0 infected files detected, WARNING if upto 10 detected, CRITICAL if 10 or more detected
 ./check_clamav -l /tmp/clamav.log -c 10
 
@@ -48,13 +51,15 @@ Usage: ./check_clamav -l <path> [options]
 
 ```
 -l, --logfile <path>        path to clamscan logfile
+-e, --expiry <duration>     expiry threshold for logfile
 -w, --warning <number>      number of infected files treat as WARNING
 -c, --critical <number>     number of infected files to treat as CRITICAL
 -V, --version               output version
 -h, --help                  output help information
 ```
 
-`-c`/`--critical` takes priority over `-w`/`--warning`.
+* `-e`/`--expiry` should be a human readable duration, e.g. '1 hour', or '7 days'.
+* `-c`/`--critical` takes priority over `-w`/`--warning`.
 
 ## Dependencies
 
