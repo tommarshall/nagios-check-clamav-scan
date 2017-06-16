@@ -16,6 +16,7 @@ UNKNOWN=3
 CRITICAL_THRESHOLD=1
 WARNING_THRESHOLD=1
 EXPIRY_THRESHOLD='48 hours'
+VERBOSE=0
 
 #
 # Output version.
@@ -55,6 +56,7 @@ help() {
     -e, --expiry <duration>     expiry threshold for logfile
     -w, --warning <number>      number of infected files treat as WARNING
     -c, --critical <number>     number of infected files to treat as CRITICAL
+    -v, --verbose               include the scan summary in the output
     -V, --version               output version
     -h, --help                  output help information
 
@@ -64,6 +66,15 @@ help() {
   For more information, see https://github.com/tommarshall/nagios-check-clamav
 
 EOF
+}
+
+#
+# Output nagios report.
+#
+
+report() {
+  echo "$@"
+  test $VERBOSE -eq 1 && echo "${SCAN_SUMMARY}"
 }
 
 #
@@ -77,6 +88,7 @@ while test $# -ne 0; do
     -e|--expiry) EXPIRY_THRESHOLD=$1; shift ;;
     -w|--warning) WARNING_THRESHOLD=$1; shift ;;
     -c|--critical) CRITICAL_THRESHOLD=$1; shift ;;
+    -v|--verbose) VERBOSE=1 ;;
     -V|--version) version; exit ;;
     -h|--help) help; exit ;;
     *)
@@ -174,12 +186,12 @@ fi
 
 if [ "$INFECTED_FILES_COUNT" -lt "$CRITICAL_THRESHOLD" ]; then
   if [ "$INFECTED_FILES_COUNT" -lt "$WARNING_THRESHOLD" ]; then
-    echo "OK: ${INFECTED_FILES_COUNT} infected file(s) detected"
+    report "OK: ${INFECTED_FILES_COUNT} infected file(s) detected"
     exit $OK
   fi
-  echo "WARNING: ${INFECTED_FILES_COUNT} infected file(s) detected"
+  report "WARNING: ${INFECTED_FILES_COUNT} infected file(s) detected"
   exit $WARNING
 fi
 
-echo "CRITICAL: ${INFECTED_FILES_COUNT} infected file(s) detected"
+report "CRITICAL: ${INFECTED_FILES_COUNT} infected file(s) detected"
 exit $CRITICAL

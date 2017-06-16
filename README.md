@@ -54,6 +54,7 @@ Usage: ./check_clamav -l <path> [options]
 -e, --expiry <duration>     expiry threshold for logfile
 -w, --warning <number>      number of infected files treat as WARNING
 -c, --critical <number>     number of infected files to treat as CRITICAL
+-v, --verbose               include the scan summary in the output
 -V, --version               output version
 -h, --help                  output help information
 ```
