@@ -297,6 +297,54 @@ EOF
   assert_output "CRITICAL: 2 infected file(s) detected"
 }
 
+# --verbose
+# ------------------------------------------------------------------------------
+@test "--verbose includes the scan summary in the output" {
+  cat > clamav.log <<-EOF
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 0
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log --verbose
+
+  assert_success
+  assert_output <<-EOF
+OK: 0 infected file(s) detected
+----------- SCAN SUMMARY -----------
+Known viruses: 6297594
+Engine version: 0.99.2
+Scanned directories: 1
+Infected files: 0
+Scanned files: 35
+Data scanned: 0.11 MB
+Data read: 0.05 MB (ratio 2.00:1)
+Time: 13.705 sec (0 m 13 s)
+EOF
+}
+
+@test "-v is an alias for --verbose" {
+  cat > clamav.log <<-EOF
+----------- SCAN SUMMARY -----------
+Infected files: 0
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log -v
+
+  assert_success
+  assert_output <<-EOF
+OK: 0 infected file(s) detected
+----------- SCAN SUMMARY -----------
+Infected files: 0
+EOF
+}
+
 # --version
 # ------------------------------------------------------------------------------
 @test "--version prints the version" {
