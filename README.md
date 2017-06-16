@@ -47,7 +47,7 @@ Usage: ./check_clamav -l <path> [options]
 ### Options
 
 ```
--l, --logfile <path>        Path to clamscan logfile
+-l, --logfile <path>        path to clamscan logfile
 -w, --warning <number>      number of infected files treat as WARNING
 -c, --critical <number>     number of infected files to treat as CRITICAL
 -V, --version               output version

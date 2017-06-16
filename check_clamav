@@ -48,7 +48,7 @@ help() {
     ./check_clamav -l /tmp/clamav.log -c 10 -w 5
 
   Options:
-    -l, --logfile <path>        Path to clamscan logfile
+    -l, --logfile <path>        path to clamscan logfile
     -w, --warning <number>      number of infected files treat as WARNING
     -c, --critical <number>     number of infected files to treat as CRITICAL
     -V, --version               output version
