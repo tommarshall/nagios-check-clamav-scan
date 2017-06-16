@@ -15,6 +15,7 @@ CRITICAL=2
 UNKNOWN=3
 CRITICAL_THRESHOLD=1
 WARNING_THRESHOLD=1
+EXPIRY_THRESHOLD='48 hours'
 
 #
 # Output version.
@@ -93,6 +94,36 @@ for dependency in cut grep rev sed; do
   fi
 done
 
+# ensure we have GNU date
+if ! date --version >/dev/null 2>&1 ; then
+  if gdate --version >/dev/null 2>&1 ; then
+    date () { gdate "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU date'
+    exit $UNKNOWN
+  fi
+fi
+
+# ensure we have GNU stat
+if ! stat --version >/dev/null 2>&1 ; then
+  if gstat --version >/dev/null 2>&1 ; then
+    stat () { gstat "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU stat'
+    exit $UNKNOWN
+  fi
+fi
+
+# ensure we have GNU stat
+if ! touch --version >/dev/null 2>&1 ; then
+  if gtouch --version >/dev/null 2>&1 ; then
+    touch () { gtouch "$@"; }
+  else
+    echo 'UNKNOWN: Unable to find GNU touch'
+    exit $UNKNOWN
+  fi
+fi
+
 # ensure we have a LOGFILE_PATH
 if [ -z "$LOGFILE_PATH" ]; then
   echo 'UNKNOWN: --logfile/-l not set'
@@ -116,6 +147,14 @@ fi
 INFECTED_FILES_COUNT=$(echo "$SCAN_SUMMARY" | grep '^Infected files:' | rev | cut -d' ' -f1 | rev)
 if [ -z "$INFECTED_FILES_COUNT" ]; then
   echo 'UNKNOWN: Unable to locate infected files count within scan summary'
+  exit $UNKNOWN
+fi
+
+# ensure the logfile has not expired
+LOGFILE_LAST_MODIFIED_DATE="$(stat --format='%Y' $LOGFILE_PATH)"
+THRESHOLD_DATE="$(date --date="-$EXPIRY_THRESHOLD" +'%s')"
+if [ "$LOGFILE_LAST_MODIFIED_DATE" -lt "$THRESHOLD_DATE" ]; then
+  echo "UNKNOWN: Logfile has expired beyond threshold: ${EXPIRY_THRESHOLD}"
   exit $UNKNOWN
 fi
 
