@@ -1,6 +1,6 @@
-# Nagios check_clamav
+# Nagios check_clamav_scan
 
-[![Build Status](https://travis-ci.org/tommarshall/nagios-check-clamav.svg?branch=master)](https://travis-ci.org/tommarshall/nagios-check-clamav)
+[![Build Status](https://travis-ci.org/tommarshall/nagios-check-clamav-scan.svg?branch=master)](https://travis-ci.org/tommarshall/nagios-check-clamav-scan)
 
 Nagios plugin for monitoring [ClamAV] virus scans.
 
@@ -14,37 +14,37 @@ Define a cron task for ClamAV to perform a scan, capturing the output in a logfi
 0 0 * * * root clamscan -r -i /var/www/uploads > /tmp/clamav.log
 ```
 
-Download the [check_clamav] script and make it executable.
+Download the [`check_clamav_scan`] script and make it executable.
 
 Define a new `command` in the Nagios config, e.g.
 
 ```nagios
 define command {
-    command_name    check_clamav
-    command_line    $USER1$/check_clamav -l /tmp/clamav.log
+    command_name    check_clamav_scan
+    command_line    $USER1$/check_clamav_scan -l /tmp/clamav.log
 }
 ```
 
 ## Usage
 
 ```
-Usage: ./check_clamav -l <path> [options]
+Usage: ./check_clamav_scan -l <path> [options]
 ```
 
 ### Examples
 
 ```sh
 # exit OK if 0 infected files detected, CRITICAL if 1 or more detected
-./check_clamav -l /tmp/clamav.log
+./check_clamav_scan -l /tmp/clamav.log
 
 # exit UNKNOWN if logfile is more than 1 hour old
-./check_clamav -l /tmp/clamav.log -e '1 hour'
+./check_clamav_scan -l /tmp/clamav.log -e '1 hour'
 
 # exit OK if 0 infected files detected, WARNING if upto 10 detected, CRITICAL if 10 or more detected
-./check_clamav -l /tmp/clamav.log -c 10
+./check_clamav_scan -l /tmp/clamav.log -c 10
 
 # exit OK if upto 4 infected files detected, WARNING if upto 5 detected, CRITICAL if 10 or more detected
-./check_clamav -l /tmp/clamav.log -c 10 -w 5
+./check_clamav_scan -l /tmp/clamav.log -c 10 -w 5
 ```
 
 ### Options
@@ -68,4 +68,4 @@ Usage: ./check_clamav -l <path> [options]
 * `cut`, `grep`, `rev`, `sed`
 
 [ClamAV]: https://www.clamav.net/
-[check_clamav]: https://cdn.rawgit.com/tommarshall/nagios-check-clamav/v0.1.0/check_clamav
+[check_clamav_scan]: https://cdn.rawgit.com/tommarshall/nagios-check-clamav-scan/v0.1.0/check_clamav_scan
