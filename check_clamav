@@ -78,6 +78,28 @@ report() {
 }
 
 #
+# Extract the last scan summary for the provided logfile path.
+#
+
+extract_summary() {
+  # getting the last occurance with sed alone is actually quite tricky, ref:
+  # https://stackoverflow.com/a/7724969/885540
+  # some sed versions (BSD) don't like semi-colon delimination, ref:
+  # https://stackoverflow.com/a/15470635/885540
+  sed -n '
+    /----------- SCAN SUMMARY -----------/{
+      h
+      b
+    }
+    H
+    ${
+      x
+      p
+    }
+  ' "$1"
+}
+
+#
 # Parse argv.
 #
 
@@ -154,7 +176,7 @@ if ! [[ -f "$LOGFILE_PATH" && -r "$LOGFILE_PATH" ]]; then
 fi
 
 # ensure we're able to locate a scan summary within the logfile
-SCAN_SUMMARY=$(sed -n -e '/----------- SCAN SUMMARY -----------/,$p' $LOGFILE_PATH)
+SCAN_SUMMARY=$(extract_summary $LOGFILE_PATH)
 if [ -z "$SCAN_SUMMARY" ]; then
   echo 'UNKNOWN: Unable to locate scan summary within logfile'
   exit $UNKNOWN

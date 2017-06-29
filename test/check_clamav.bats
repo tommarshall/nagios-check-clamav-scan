@@ -126,6 +126,22 @@ EOF
   assert_output "UNKNOWN: Logfile has expired, more than 48 hours old"
 }
 
+@test "uses the last scan summary in the file only" {
+  cat > clamav.log.multiple <<-EOF
+----------- SCAN SUMMARY -----------
+Infected files: 6
+----------- SCAN SUMMARY -----------
+Infected files: 9
+----------- SCAN SUMMARY -----------
+Infected files: 0
+EOF
+
+  run $BASE_DIR/check_clamav --logfile clamav.log.multiple
+
+  assert_success
+  assert_output "OK: 0 infected file(s) detected"
+}
+
 # --logfile
 # ------------------------------------------------------------------------------
 @test "-l is an alias for --logfile" {
