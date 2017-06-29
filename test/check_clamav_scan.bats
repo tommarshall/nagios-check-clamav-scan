@@ -7,7 +7,7 @@ load 'test_helper'
 # Validation
 # ------------------------------------------------------------------------------
 @test "exits UNKNOWN if unrecognised option provided" {
-  run $BASE_DIR/check_clamav --logfile /tmp/foo --not-an-arg
+  run $BASE_DIR/check_clamav_scan --logfile /tmp/foo --not-an-arg
 
   assert_failure 3
   assert_line "UNKNOWN: Unrecognised argument: --not-an-arg"
@@ -15,7 +15,7 @@ load 'test_helper'
 }
 
 @test "exits UNKNOWN if --logfile/-l not provided" {
-  run $BASE_DIR/check_clamav
+  run $BASE_DIR/check_clamav_scan
 
   assert_failure 3
   assert_output "UNKNOWN: --logfile/-l not set"
@@ -25,7 +25,7 @@ load 'test_helper'
   touch clamav.log.unreadable
   chmod a-r clamav.log.unreadable
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.unreadable
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.unreadable
 
   assert_failure 3
   assert_output "UNKNOWN: Unable to read logfile: clamav.log.unreadable"
@@ -34,7 +34,7 @@ load 'test_helper'
 @test "exits UNKNOWN if scan summary not found within logfile" {
   touch clamav.log.empty
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.empty
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.empty
 
   assert_failure 3
   assert_output "UNKNOWN: Unable to locate scan summary within logfile"
@@ -52,7 +52,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.partial-summary
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.partial-summary
 
   assert_failure 3
   assert_output "UNKNOWN: Unable to locate infected files count within scan summary"
@@ -60,7 +60,7 @@ EOF
 
 @test "exits UNKNOWN if an executable dependency is missing" {
   PATH='/bin'
-  run $BASE_DIR/check_clamav --logfile clamav.log
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log
 
   assert_failure 3
   assert_output "UNKNOWN: Missing dependency: cut"
@@ -81,7 +81,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean
 
   assert_success
   assert_output "OK: 0 infected file(s) detected"
@@ -100,7 +100,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected
 
   assert_failure 2
   assert_output "CRITICAL: 1 infected file(s) detected"
@@ -120,7 +120,7 @@ Time: 13.705 sec (0 m 13 s)
 EOF
   touch -m -d "$(date -d '-49 hours')" clamav.log.clean
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean
 
   assert_failure 3
   assert_output "UNKNOWN: Logfile has expired, more than 48 hours old"
@@ -136,7 +136,7 @@ Infected files: 9
 Infected files: 0
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.multiple
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.multiple
 
   assert_success
   assert_output "OK: 0 infected file(s) detected"
@@ -150,7 +150,7 @@ EOF
 Infected files: 0
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean
 
   assert_success
   assert_output "OK: 0 infected file(s) detected"
@@ -172,7 +172,7 @@ Time: 13.705 sec (0 m 13 s)
 EOF
   touch -m -d "$(date -d '-2 hours')" clamav.log.clean
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean --expiry '1 hour'
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean --expiry '1 hour'
 
   assert_failure 3
   assert_output "UNKNOWN: Logfile has expired, more than 1 hour old"
@@ -192,7 +192,7 @@ Time: 13.705 sec (0 m 13 s)
 EOF
   touch -m -d "$(date -d '-2 hours')" clamav.log.clean
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean -e '1 hour'
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean -e '1 hour'
 
   assert_failure 3
   assert_output "UNKNOWN: Logfile has expired, more than 1 hour old"
@@ -204,7 +204,7 @@ EOF
 Infected files: 0
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.clean --expiry 'not-a-valid-date'
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.clean --expiry 'not-a-valid-date'
 
   assert_failure 3
   assert_output "UNKNOWN: Invalid expiry specified: not-a-valid-date"
@@ -225,7 +225,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 2
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected --critical 2
 
   assert_failure 1
   assert_output "WARNING: 1 infected file(s) detected"
@@ -244,7 +244,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected -c 2
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected -c 2
 
   assert_failure 1
   assert_output "WARNING: 1 infected file(s) detected"
@@ -265,7 +265,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 3 --warning 2
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected --critical 3 --warning 2
 
   assert_success
   assert_output "OK: 1 infected file(s) detected"
@@ -288,7 +288,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 3 -w 2
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected --critical 3 -w 2
 
   assert_success
   assert_output "OK: 1 infected file(s) detected"
@@ -307,7 +307,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log.infected --critical 2 --warning 1
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log.infected --critical 2 --warning 1
 
   assert_failure 2
   assert_output "CRITICAL: 2 infected file(s) detected"
@@ -328,7 +328,7 @@ Data read: 0.05 MB (ratio 2.00:1)
 Time: 13.705 sec (0 m 13 s)
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log --verbose
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log --verbose
 
   assert_success
   assert_output <<-EOF
@@ -351,7 +351,7 @@ EOF
 Infected files: 0
 EOF
 
-  run $BASE_DIR/check_clamav --logfile clamav.log -v
+  run $BASE_DIR/check_clamav_scan --logfile clamav.log -v
 
   assert_success
   assert_output <<-EOF
@@ -364,31 +364,31 @@ EOF
 # --version
 # ------------------------------------------------------------------------------
 @test "--version prints the version" {
-  run $BASE_DIR/check_clamav --version
+  run $BASE_DIR/check_clamav_scan --version
 
   assert_success
-  [[ "$output" == "check_clamav "?.?.? ]]
+  [[ "$output" == "check_clamav_scan "?.?.? ]]
 }
 
 @test "-V is an alias for --version" {
-  run $BASE_DIR/check_clamav -V
+  run $BASE_DIR/check_clamav_scan -V
 
   assert_success
-  [[ "$output" == "check_clamav "?.?.? ]]
+  [[ "$output" == "check_clamav_scan "?.?.? ]]
 }
 
 # --help
 # ------------------------------------------------------------------------------
 @test "--help prints the usage" {
-  run $BASE_DIR/check_clamav --help
+  run $BASE_DIR/check_clamav_scan --help
 
   assert_success
-  assert_line --partial "Usage: ./check_clamav -l <path> [options]"
+  assert_line --partial "Usage: ./check_clamav_scan -l <path> [options]"
 }
 
 @test "-h is an alias for --help" {
-  run $BASE_DIR/check_clamav -h
+  run $BASE_DIR/check_clamav_scan -h
 
   assert_success
-  assert_line --partial "Usage: ./check_clamav -l <path> [options]"
+  assert_line --partial "Usage: ./check_clamav_scan -l <path> [options]"
 }
