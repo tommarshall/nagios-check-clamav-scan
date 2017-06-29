@@ -14,7 +14,7 @@ Define a cron task for ClamAV to perform a scan, capturing the output in a logfi
 0 0 * * * root clamscan -r -i /var/www/uploads > /tmp/clamav.log
 ```
 
-Download the [`check_clamav_scan`] script and make it executable.
+Download the [check_clamav_scan] script and make it executable.
 
 Define a new `command` in the Nagios config, e.g.
 
